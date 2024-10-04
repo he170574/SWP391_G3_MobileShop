@@ -29,14 +29,13 @@ public class ProductController {
     public ResponseEntity<ResponseDTO> getAllProducts() {
         List<Product> products = productService.getAll();
         List<ProductDTO> productDTOs = products.stream().map(item -> ProductDTO.builder()
-                .productId(item.getProductId())
+                .productId(item.getProductID())
                 .productName(item.getProductName())
                 .productDetails(item.getProductDetails())
                 .productImage(item.getProductImage())
                 .price(item.getPrice())
-                .categoryID(item.getCategoryID())
+                .CategoryID(item.getCategoryID())
                 .stockQuantity(item.getStockQuantity())
-                .status(item.getStatus())
                 .build()).toList();
         ResponseDTO responseDTO = new ResponseDTO();
         responseDTO.setMessage("Get success");
@@ -52,10 +51,10 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDTO);
     }
 
-    @PostMapping("/save-product")
+    @PostMapping("/save-new-product")
     public ResponseEntity<ResponseDTO> saveProduct(@RequestBody ProductDTO productDTO) {
         ResponseDTO responseDTO = new ResponseDTO();
-        ProductEntity product = productService.parseProductDtoToProduct(productDTO);
+        Product product = productService.parseProductDtoToProduct(productDTO);
         responseDTO.setMessage("Get success");
         responseDTO.setData(productService.save(product));
         return ResponseEntity.status(HttpStatus.OK).body(responseDTO);
@@ -94,24 +93,10 @@ public class ProductController {
                 productDTO.getProductDetails(),
                 productDTO.getProductImage(),
                 productDTO.getPrice(),
-                productDTO.getCategoryID(),
                 productDTO.getStockQuantity(),
-                productDTO.getStatus());
+                productDTO.getCategoryID());
         responseDTO.setMessage("Get success");
         responseDTO.setData(product);
         return ResponseEntity.status(HttpStatus.OK).body(responseDTO);
-    }
-
-    @GetMapping("/get-by-code")
-    public ResponseEntity<ResponseDTO> getProductByCode(@RequestParam String code) {
-        Product product = productRepository.findByCode(code);
-        ProductDTO productDTO = ProductDTO.builder()
-                .productName(product.getProductName())
-                .price(product.getPrice())
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(ResponseDTO.builder()
-                .data(productDTO)
-                .message("Success")
-                .build());
     }
 }
