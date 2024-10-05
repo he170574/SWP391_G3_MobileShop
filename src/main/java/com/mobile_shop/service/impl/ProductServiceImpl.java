@@ -5,15 +5,25 @@ import com.mobile_shop.entity.Product;
 import com.mobile_shop.repository.ProductRepository;
 import com.mobile_shop.service.ProductService;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
+@Service
+@Transactional
 public class ProductServiceImpl implements ProductService {
+
     private ProductRepository productRepository;
-    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
+
+    @Autowired
+    public ProductServiceImpl(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
+
+
 
     @Override
     public List<Product> getAll() {
@@ -25,7 +35,11 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findById(id);
     }
 
-    public Product parsePromotionDtoToProduct(ProductDTO productDTO) {
+    public Product save(Product product) {
+        return productRepository.save(product);
+    }
+
+    public Product parseProductDtoToProduct(ProductDTO productDTO) {
         return Product.builder()
                 .productID(productDTO.getProductId())
                 .deleted(false)
@@ -38,21 +52,8 @@ public class ProductServiceImpl implements ProductService {
                 .build();
     }
 
-    public Product save(Product product) {
-        Product savedProduct = productRepository.save(product);
-        if (savedProduct != null) {
-            executorService.submit(() -> {
-                List<Account> lstAccount = accountRepository.findAll();
-                for (Account account : lstAccount) {
-                    sendPromotion(savedPromotion, account.getEmail());
-                }
-            });
-        }
-        return savedPromotion;
-    }
-
     @Override
-    public void deleteByPromotionId(Integer id) {
+    public void deleteByProductId(Integer id) {
         if (productRepository.existsById(id)) {
             productRepository.deleteById(id);
         } else {
@@ -70,8 +71,8 @@ public class ProductServiceImpl implements ProductService {
             product.setProductDetails(detail);
             product.setProductImage(image);
             product.setPrice(price);
-            product.setStockQuantity(quantity);
             product.setCategoryID(category);
+            product.setStockQuantity(quantity);
             return productRepository.save(product);
         } else {
             throw new EntityNotFoundException("Product not found with ID: " + id);

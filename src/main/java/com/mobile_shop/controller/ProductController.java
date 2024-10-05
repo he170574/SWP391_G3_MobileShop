@@ -13,16 +13,15 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class ProductController {
-    private final ProductRepository productRepository;
     private final ProductService productService;
 
     @Autowired
     public ProductController(ProductService productService, ProductRepository productRepository) {
         this.productService = productService;
-        this.productRepository = productRepository;
     }
 
     @GetMapping("/get-product")
@@ -54,19 +53,26 @@ public class ProductController {
     @PostMapping("/save-new-product")
     public ResponseEntity<ResponseDTO> saveProduct(@RequestBody ProductDTO productDTO) {
         ResponseDTO responseDTO = new ResponseDTO();
+        Optional<Product> existingProduct = productService.getOne(productDTO.getProductId());
+        if (existingProduct.isPresent()) {
+            responseDTO.setMessage("Product already exists, do you want to update it?");
+            responseDTO.setData(existingProduct.get());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(responseDTO);
+        } else {
         Product product = productService.parseProductDtoToProduct(productDTO);
         responseDTO.setMessage("Get success");
         responseDTO.setData(productService.save(product));
         return ResponseEntity.status(HttpStatus.OK).body(responseDTO);
+        }
     }
 
     @PostMapping("/delete-product")
-    public ResponseEntity<ResponseDTO> deleteProduct(@RequestParam Long id) {
+    public ResponseEntity<ResponseDTO> deleteProduct(@RequestParam Integer id) {
         ResponseDTO responseDTO = new ResponseDTO();
         try {
             productService.deleteByProductId(id);
             responseDTO.setMessage("Success");
-            responseDTO.setData("Delete success"); // No data needed for delete response
+            responseDTO.setData("Delete success");
             return ResponseEntity.status(HttpStatus.OK).body(responseDTO);
         } catch (Exception e) {
             responseDTO.setMessage("Delete failed: " + e.getMessage());
@@ -77,14 +83,16 @@ public class ProductController {
 
     @PostMapping("/submitForm")
     public String submitForm(@Valid @RequestBody ProductDTO productDTO, BindingResult bindingResult) {
-        // Add any custom validation logic here
+        if (productDTO.getStockQuantity() < 1){
+            bindingResult.rejectValue("productDTO","stockQuantity", "Stock quantity must be greater than 0");
+        }
         if (bindingResult.hasErrors()) {
             return "Validation failed";
         }
         return "Form submitted successfully";
     }
 
-    @PostMapping("/update-product")
+    @PostMapping("/save-edit-product")
     public ResponseEntity<ResponseDTO> updateProduct(@RequestBody ProductDTO productDTO) {
         ResponseDTO responseDTO = new ResponseDTO();
         Product product = productService.updateProduct(
