@@ -9,12 +9,14 @@ import java.util.Optional;
 public interface ProductService {
     List<Product> getAll();
 
-
     Optional<Product> getOne(Integer id);
 
-    void deleteByPromotionId(Integer id);
+    Product save(Product product);
+
+    Product parseProductDtoToProduct(ProductDTO productDTO);
+
+    void deleteByProductId(Integer id);
 
     Product updateProduct(Integer id, String name, String detail, String image, Double price, Integer quantity, String category);
 
-    Product parseProductDtoToProduct(ProductDTO productDTO);
 }

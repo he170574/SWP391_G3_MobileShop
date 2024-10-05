@@ -118,7 +118,7 @@ $('#addProductForm').on('submit', function (event) {
     var formData = $(this).serialize();
 
     $.ajax({
-        url: '/MobilePhone/manage-product?action=add',
+        url: '/save-new-product',
         type: 'POST',
         data: formData,
         success: function (response) {
@@ -133,7 +133,30 @@ $('#addProductForm').on('submit', function (event) {
             }
         },
         error: function () {
-            alert('Error adding product');
+            if (xhr.status == 409){
+                var existingProduct = xhr.reponseJSON.data;
+                if (confirm("Product already exists, do you want to update it?")){
+                    var newStockQuantity = existingProduct.stockQuantity + parseInt($('addProductStock').val());
+                    $.ajax({
+                        url: '/save-edit-product',
+                        type: 'POST',
+                        data: {
+                            productId: existingProduct.productId,
+                            stockQuantity: newStockQuantity
+                        },
+                        success: function (updateResponse){
+                            console.log(updateResponse);
+                            alert("Update quantity success");
+                            loadProducts();
+                        },
+                        error: function (){
+                            alert("Error update quantity");
+                        }
+                    });
+                }
+            } else {
+                alert('Error adding product');
+            }
         }
     });
 });
