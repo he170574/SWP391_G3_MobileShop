@@ -27,7 +27,7 @@ $(document).ready(function () {
 // Load all product
 function loadProducts(search = '', page = 1) {
     $.ajax({
-        url: `/MobilePhone/manage-product?action=viewList&search=${encodeURIComponent(search)}&page=${page}`,
+        url: `/get-product`,
         type: 'GET',
         success: function (response) {
             var parser = new DOMParser();
@@ -164,7 +164,7 @@ $('#addProductForm').on('submit', function (event) {
 // Edit product
 function editProduct(productId) {
     $.ajax({
-        url: '/MobilePhone/manage-product?action=getProduct&productId=' + productId,
+        url: 'edit-product',
         type: 'GET',
         dataType: 'json',
         success: function (product) {
@@ -189,7 +189,7 @@ $('#editProductForm').on('submit', function (event) {
     event.preventDefault();
     var formData = $(this).serialize();
     $.ajax({
-        url: '/MobilePhone/manage-product?action=update',
+        url: 'save-edit-product',
         type: 'POST',
         data: formData,
         success: function (response) {
@@ -207,7 +207,7 @@ $('#editProductForm').on('submit', function (event) {
 function deleteProduct(productId) {
     if (confirm('Are you sure you want to delete this product?')) {
         $.ajax({
-            url: '/MobilePhone/manage-product?action=delete&productId=' + productId,
+            url: 'delete-product',
             type: 'POST',
             success: function (response) {
                 alert(response);
